@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react';
+import { Star, Check, X } from 'lucide-react';
+import { supabase, Testimonial } from '../../lib/supabase';
+
+export default function AdminTestimonials() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTestimonials();
+  }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) setTestimonials(data);
+    } catch (error) {
+      console.error('Error loading testimonials:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id: string, approved: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('testimonials')
+        .update({ approved })
+        .eq('id', id);
+
+      if (error) throw error;
+      loadTestimonials();
+    } catch (error) {
+      console.error('Error updating testimonial:', error);
+      alert('Error al actualizar el testimonio');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este testimonio?')) return;
+
+    try {
+      const { error } = await supabase.from('testimonials').delete().eq('id', id);
+      if (error) throw error;
+      loadTestimonials();
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
+      alert('Error al eliminar el testimonio');
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-900 mb-6">Gestión de Testimonios</h2>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+        </div>
+      ) : testimonials.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow-md">
+          <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay testimonios</h3>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {testimonials.map((testimonial) => (
+            <div
+              key={testimonial.id}
+              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < testimonial.rating
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span
+                      className={`ml-3 px-2 py-1 text-xs font-semibold rounded-full ${
+                        testimonial.approved
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {testimonial.approved ? 'Aprobado' : 'Pendiente'}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    {testimonial.customer_name}
+                  </h3>
+                  <p className="text-gray-700 mb-4 italic">"{testimonial.comment}"</p>
+                  <p className="text-sm text-gray-500">
+                    Fecha: {new Date(testimonial.created_at).toLocaleDateString('es-MX')}
+                  </p>
+                </div>
+                <div className="flex flex-col space-y-2 ml-4">
+                  {!testimonial.approved && (
+                    <button
+                      onClick={() => handleApprove(testimonial.id, true)}
+                      className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                      title="Aprobar"
+                    >
+                      <Check className="h-5 w-5" />
+                    </button>
+                  )}
+                  {testimonial.approved && (
+                    <button
+                      onClick={() => handleApprove(testimonial.id, false)}
+                      className="p-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition-colors"
+                      title="Desaprobar"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(testimonial.id)}
+                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Eliminar"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
