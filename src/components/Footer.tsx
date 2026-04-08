@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Mail, Phone, MapPin } from 'lucide-react';
 import React from 'react';
 
 export default function Footer() {
@@ -53,11 +53,11 @@ export default function Footer() {
             <ul className="space-y-5 text-sm">
               <li className="flex items-center justify-center md:justify-start space-x-2">
                 <Phone className="h-4 w-4 text-red-600" />
-                <span>+52 55 1234 5678</span>
+                <span>324 579 9091</span>
               </li>
               <li className="flex items-center justify-center md:justify-start space-x-2">
                 <Mail className="h-4 w-4 text-red-600" />
-                <span>info@hpautos.com</span>
+                <span>phautos2025@gmail.com</span>
               </li>
               <li className="flex items-start justify-center md:justify-start space-x-2">
                 <MapPin className="h-4 w-4 text-red-600 mt-1" />
@@ -71,25 +71,22 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Síguenos</h3>
             <div className="flex justify-center md:justify-start space-x-3 mb-4">
               <a
-                href="#"
+                href="https://www.facebook.com/share/14brdddxfii/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-slate-800 p-2 rounded-lg hover:bg-red-600 transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/phautos_compra_venta?igsh=aDlkdW8waHZoem1t"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="bg-slate-800 p-2 rounded-lg hover:bg-red-600 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                className="bg-slate-800 p-2 rounded-lg hover:bg-red-600 transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="h-4 w-4" />
               </a>
             </div>
 

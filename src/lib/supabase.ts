@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -9,26 +9,57 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+const supabaseOrigin = new URL(supabaseUrl).origin;
+
+export function normalizeStorageUrl(url: string | null | undefined) {
+  if (!url) return null;
+  
+  try {
+    const parsed = new URL(url);
+    
+    // Asegurarse de que sea del storage de Supabase
+    if (parsed.pathname.startsWith('/storage/v1/object/')) {
+      // Reconstruir la URL completa con el origin correcto
+      return `${supabaseOrigin}${parsed.pathname}${parsed.search}`;
+    }
+    
+    return url;
+  } catch {
+    // Si no es una URL válida, intentar construirla
+    if (url.startsWith('/storage/v1/object/')) {
+      return `${supabaseOrigin}${url}`;
+    }
+    return url;
+  }
+}
+
+export type VehicleImage = {
+  id: string;
+  vehicle_id: string;
+  url: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type Vehicle = {
   id: string;
+  created_at: string;
+  updated_at: string;
   title: string;
   brand: string;
   model: string;
   year: number;
   price: number;
-  condition: 'new' | 'used';
-  mileage: number | null;
-  fuel_type: string;
+  km: number;
+  fuel: string;
   transmission: string;
-  type: string;
-  color: string | null;
+  condition: 'nuevo' | 'usado';
   description: string | null;
-  features: string[];
-  images: string[];
-  is_featured: boolean;
-  status: 'available' | 'sold' | 'reserved';
-  created_at: string;
-  updated_at: string;
+  status: 'activo' | 'reservado' | 'vendido';
+  location: string | null;
+  cover_image_url: string | null;
+  rating: number;
+  vehicle_images?: VehicleImage[];
 };
 
 export type Article = {

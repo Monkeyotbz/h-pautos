@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Car } from 'lucide-react';
-import { supabase, Vehicle } from '../../lib/supabase';
+import { supabase, Vehicle, normalizeStorageUrl } from '../../lib/supabase';
 import VehicleForm from './VehicleForm';
 
 export default function AdminVehicles() {
@@ -17,11 +17,11 @@ export default function AdminVehicles() {
     try {
       const { data, error } = await supabase
         .from('vehicles')
-        .select('*')
+        .select('*, vehicle_images (url, sort_order)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (data) setVehicles(data);
+      if (data) setVehicles(data as Vehicle[]);
     } catch (error) {
       console.error('Error loading vehicles:', error);
     } finally {
@@ -30,7 +30,7 @@ export default function AdminVehicles() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este vehículo?')) return;
+    if (!confirm('Estas seguro de eliminar este vehiculo?')) return;
 
     try {
       const { error } = await supabase.from('vehicles').delete().eq('id', id);
@@ -38,7 +38,7 @@ export default function AdminVehicles() {
       loadVehicles();
     } catch (error) {
       console.error('Error deleting vehicle:', error);
-      alert('Error al eliminar el vehículo');
+      alert('Error al eliminar el vehiculo');
     }
   };
 
@@ -53,127 +53,111 @@ export default function AdminVehicles() {
     loadVehicles();
   };
 
+  const getVehicleImage = (vehicle: Vehicle) => {
+    const cover = normalizeStorageUrl(vehicle.cover_image_url);
+    if (cover) return cover;
+    const images = vehicle.vehicle_images || [];
+    const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
+    return normalizeStorageUrl(sorted[0]?.url) || null;
+  };
+
   if (showForm) {
     return <VehicleForm vehicle={editingVehicle} onClose={handleCloseForm} />;
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Gestión de Vehículos</h2>
+    <div className="text-slate-100">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-white">Gestion de Vehiculos</h2>
+          <p className="text-slate-300 text-sm">Administra tu inventario y tus publicaciones.</p>
+        </div>
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
+          className="px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 shadow-[0_10px_25px_rgba(239,68,68,0.35)]"
         >
           <Plus className="h-5 w-5" />
-          <span>Nuevo Vehículo</span>
+          <span>Nuevo Vehiculo</span>
         </button>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
         </div>
       ) : vehicles.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-md">
-          <Car className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">No hay vehículos</h3>
-          <p className="text-gray-600">Agrega tu primer vehículo al catálogo</p>
+        <div className="text-center py-12 bg-white/5 border border-white/10 rounded-2xl shadow-md">
+          <Car className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-white mb-2">No hay vehiculos</h3>
+          <p className="text-slate-300">Agrega tu primer vehiculo al catalogo</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-black/60 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Vehículo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Año
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Precio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Destacado
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Vehiculo</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Ano</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Precio</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {vehicles.map((vehicle) => (
-                  <tr key={vehicle.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-16 h-16 flex-shrink-0 mr-4">
-                          {vehicle.images && vehicle.images.length > 0 ? (
-                            <img
-                              src={vehicle.images[0]}
-                              alt={vehicle.title}
-                              className="w-16 h-16 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <Car className="h-8 w-8 text-gray-400" />
+              <tbody className="divide-y divide-white/10">
+                {vehicles.map((vehicle) => {
+                  const imageUrl = getVehicleImage(vehicle);
+                  return (
+                    <tr key={vehicle.id} className="hover:bg-white/5">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="w-16 h-16 flex-shrink-0 mr-4">
+                            {imageUrl ? (
+                              <img src={imageUrl} alt={vehicle.title} className="w-16 h-16 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-16 h-16 bg-white/5 rounded-lg flex items-center justify-center">
+                                <Car className="h-8 w-8 text-slate-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-white">{vehicle.title}</div>
+                            <div className="text-sm text-slate-300">
+                              {vehicle.brand} {vehicle.model}
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{vehicle.title}</div>
-                          <div className="text-sm text-gray-500">
-                            {vehicle.brand} {vehicle.model}
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {vehicle.year}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${vehicle.price.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          vehicle.status === 'available'
-                            ? 'bg-green-100 text-green-800'
-                            : vehicle.status === 'sold'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {vehicle.status === 'available'
-                          ? 'Disponible'
-                          : vehicle.status === 'sold'
-                          ? 'Vendido'
-                          : 'Reservado'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {vehicle.is_featured ? '⭐' : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(vehicle)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        <Edit2 className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(vehicle.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-200">{vehicle.year}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">
+                        ${Number(vehicle.price).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          vehicle.status === 'activo'
+                            ? 'bg-green-500/15 text-green-300'
+                            : vehicle.status === 'vendido'
+                            ? 'bg-red-500/15 text-red-300'
+                            : 'bg-yellow-500/15 text-yellow-300'
+                        }`}>
+                          {vehicle.status === 'activo'
+                            ? 'Activo'
+                            : vehicle.status === 'vendido'
+                            ? 'Vendido'
+                            : 'Reservado'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onClick={() => handleEdit(vehicle)} className="text-blue-300 hover:text-blue-100 mr-4">
+                          <Edit2 className="h-5 w-5" />
+                        </button>
+                        <button onClick={() => handleDelete(vehicle.id)} className="text-red-300 hover:text-red-100">
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

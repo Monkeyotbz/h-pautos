@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import {
   Car,
   ShieldCheck,
@@ -9,16 +10,20 @@ import {
   ChevronRight,
   Star,
   PhoneCall,
+  Calendar,
+  Gauge,
 } from 'lucide-react';
-import { supabase, Vehicle, Testimonial } from '../lib/supabase';
+import { supabase, Vehicle, Testimonial, VehicleImage, normalizeStorageUrl } from '../lib/supabase';
 import Footer from '../components/Footer';
 
 type HomeProps = {
   onNavigate: (page: string, vehicleId?: string) => void;
 };
 
+type VehicleWithImages = Vehicle & { vehicle_images?: VehicleImage[] };
+
 export default function Home({ onNavigate }: HomeProps) {
-  const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
+  const [featuredVehicles, setFeaturedVehicles] = useState<VehicleWithImages[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,9 +45,9 @@ export default function Home({ onNavigate }: HomeProps) {
       const [vehiclesResponse, testimonialsResponse] = await Promise.all([
         supabase
           .from('vehicles')
-          .select('*')
-          .eq('is_featured', true)
-          .eq('status', 'available')
+          .select('id, title, brand, model, year, price, km, condition, transmission, fuel, location, description, status, created_at, rating, vehicle_images (url, sort_order)')
+          .eq('status', 'activo')
+          .order('created_at', { ascending: false })
           .limit(8),
         supabase
           .from('testimonials')
@@ -52,7 +57,7 @@ export default function Home({ onNavigate }: HomeProps) {
           .limit(3),
       ]);
 
-      if (vehiclesResponse.data) setFeaturedVehicles(vehiclesResponse.data);
+      if (vehiclesResponse.data) setFeaturedVehicles(vehiclesResponse.data as VehicleWithImages[]);
       if (testimonialsResponse.data) setTestimonials(testimonialsResponse.data);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -61,7 +66,7 @@ export default function Home({ onNavigate }: HomeProps) {
     }
   };
 
-  const handleLeadSubmit = async (e: React.FormEvent) => {
+  const handleLeadSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLeadSending(true);
     setLeadSent(false);
@@ -71,7 +76,7 @@ export default function Home({ onNavigate }: HomeProps) {
           name: leadForm.name,
           email: leadForm.email,
           phone: leadForm.phone || null,
-          message: leadForm.interest || 'Interés general (Home)',
+          message: leadForm.interest || 'Interes general (Home)',
         },
       ]);
       setLeadSent(true);
@@ -83,34 +88,36 @@ export default function Home({ onNavigate }: HomeProps) {
     }
   };
 
+  const getVehicleImage = (vehicle: VehicleWithImages) => {
+    const cover = normalizeStorageUrl(vehicle.cover_image_url);
+    if (cover) return cover;
+    const images = vehicle.vehicle_images || [];
+    const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
+    return normalizeStorageUrl(sorted[0]?.url) || null;
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
       {/* HERO */}
       <section
-        className="relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "linear-gradient(135deg, rgba(0,0,0,0.92), rgba(13,13,17,0.82)), url('/Banner_prado.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        className="relative overflow-hidden home-hero-bg"
       >
         <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_top_left,rgba(255,0,0,0.35),transparent_35%)]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-16 md:py-24 grid md:grid-cols-2 gap-12">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
               Compra y vende tu auto usado
-              <span className="text-red-500 block">Fácil y Rápido</span>
+              <span className="text-red-500 block">Facil y Rapido</span>
             </h1>
             <p className="text-lg text-slate-200/80 max-w-2xl">
-              Compra y venta de vehículos usados con evaluación gratuita, pago inmediato y autos verificados.
+              Compra y venta de vehiculos usados con evaluacion gratuita, pago inmediato y autos verificados.
             </p>
             <div className="space-y-3">
               {[
-                'Evaluación gratuita',
+                'Evaluacion gratuita',
                 'Pago inmediato',
                 'Autos certificados',
-                'Trámites sencillos',
+                'Tramites sencillos',
               ].map((item) => (
                 <div key={item} className="flex items-center space-x-3 text-slate-100">
                   <CheckCircle2 className="h-5 w-5 text-red-500" />
@@ -137,7 +144,7 @@ export default function Home({ onNavigate }: HomeProps) {
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/40">
             <div className="mb-4">
               <h3 className="text-2xl font-bold text-white">¿Quieres vender o comprar un auto?</h3>
-              <p className="text-sm text-slate-300">Déjanos tus datos y te contactamos de inmediato.</p>
+              <p className="text-sm text-slate-300">Dejanos tus datos y te contactamos de inmediato.</p>
             </div>
             <form className="space-y-4" onSubmit={handleLeadSubmit}>
               <div>
@@ -154,7 +161,7 @@ export default function Home({ onNavigate }: HomeProps) {
                 <input
                   type="tel"
                   required
-                  placeholder="Teléfono"
+                  placeholder="Telefono"
                   value={leadForm.phone}
                   onChange={(e) => setLeadForm({ ...leadForm, phone: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -173,7 +180,7 @@ export default function Home({ onNavigate }: HomeProps) {
               <div>
                 <input
                   type="text"
-                  placeholder="¿Qué te interesa?"
+                  placeholder="¿Que te interesa?"
                   value={leadForm.interest}
                   onChange={(e) => setLeadForm({ ...leadForm, interest: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -192,24 +199,24 @@ export default function Home({ onNavigate }: HomeProps) {
             </form>
             <div className="mt-6 flex items-center space-x-2 text-slate-200">
               <PhoneCall className="h-5 w-5 text-red-500" />
-              <span className="font-semibold">+54 11 1234 5678</span>
+              <span className="font-semibold">324 579 9091</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* POR QUÉ ELEGIRNOS */}
+      {/* POR QUE ELEGIRNOS */}
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 mb-10">
-            ¿Por qué elegir H &amp; P Autos?
+            ¿Por que elegir H & P Autos?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
               { icon: DollarSign, title: 'Pago Inmediato', desc: 'Recibe el dinero en el acto por tu auto.' },
-              { icon: ShieldCheck, title: 'Transacción Segura', desc: 'Nos encargamos de todo el papeleo.' },
-              { icon: BadgeCheck, title: 'Autos Revisados', desc: 'Vehículos verificados y certificados.' },
-              { icon: Headset, title: 'Atención Personalizada', desc: 'Asesoramiento experto en todo momento.' },
+              { icon: ShieldCheck, title: 'Transaccion Segura', desc: 'Nos encargamos de todo el papeleo.' },
+              { icon: BadgeCheck, title: 'Autos Revisados', desc: 'Vehiculos verificados y certificados.' },
+              { icon: Headset, title: 'Atencion Personalizada', desc: 'Asesoramiento experto en todo momento.' },
             ].map((item) => (
               <div
                 key={item.title}
@@ -247,48 +254,111 @@ export default function Home({ onNavigate }: HomeProps) {
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
             </div>
           ) : featuredVehicles.length === 0 ? (
-            <p className="text-center text-slate-300">Aún no hay vehículos destacados.</p>
+            <p className="text-center text-slate-300">Aun no hay vehiculos disponibles.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredVehicles.map((vehicle) => (
-                <div
-                  key={vehicle.id}
-                  className="bg-white/5 border border-white/10 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-1 transition transform cursor-pointer"
-                  onClick={() => onNavigate('vehicle-detail', vehicle.id)}
-                >
-                  <div className="relative h-44 bg-slate-800">
-                    {vehicle.images && vehicle.images.length > 0 ? (
-                      <img src={vehicle.images[0]} alt={vehicle.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Car className="h-16 w-16 text-slate-400" />
+              {featuredVehicles.map((vehicle) => {
+                const imageUrl = getVehicleImage(vehicle);
+                
+                // Usar rating de la base de datos
+                const stars = vehicle.rating || 5;
+                const fullStars = Math.floor(stars);
+                const hasHalfStar = stars % 1 !== 0;
+                
+                return (
+                  <div
+                    key={vehicle.id}
+                    className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_20px_50px_rgba(220,38,38,0.3)] hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+                    onClick={() => onNavigate('vehicle-detail', vehicle.id)}
+                  >
+                    {/* Imagen del vehículo */}
+                    <div className="relative h-48 overflow-hidden">
+                      {imageUrl ? (
+                        <img 
+                          src={imageUrl} 
+                          alt={vehicle.title} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                          <Car className="h-20 w-20 text-slate-600" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      
+                      {/* Badge de condición */}
+                      <div className="absolute top-3 right-3">
+                        <span className={`px-3 py-1.5 text-xs font-bold rounded-full shadow-lg ${
+                          vehicle.condition === 'nuevo' 
+                            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white' 
+                            : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                        }`}>
+                          {vehicle.condition === 'nuevo' ? '✨ NUEVO' : '🚗 USADO'}
+                        </span>
                       </div>
-                    )}
-                    <div className="absolute top-3 left-3">
-                      <span className="px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
-                        {vehicle.condition === 'new' ? 'Nuevo' : 'Usado'}
-                      </span>
+                      
+                      {/* Estrellas de reconocimiento */}
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                              i < fullStars
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : i === fullStars && hasHalfStar
+                                ? 'fill-yellow-400 text-yellow-400 opacity-50'
+                                : 'fill-slate-600 text-slate-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Contenido */}
+                    <div className="p-4 space-y-3">
+                      {/* Título */}
+                      <div>
+                        <h3 className="text-lg font-bold text-white line-clamp-1 group-hover:text-red-400 transition-colors">
+                          {vehicle.title}
+                        </h3>
+                        <p className="text-sm text-slate-400 font-medium">
+                          {vehicle.brand} {vehicle.model}
+                        </p>
+                      </div>
+                      
+                      {/* Detalles */}
+                      <div className="flex items-center gap-3 text-xs text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {vehicle.year}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Gauge className="h-3.5 w-3.5" />
+                          {vehicle.km.toLocaleString()} km
+                        </span>
+                      </div>
+                      
+                      {/* Precio y botón */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
+                        <div>
+                          <p className="text-xs text-slate-500 font-medium">Precio</p>
+                          <p className="text-xl font-extrabold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                            ${Number(vehicle.price).toLocaleString()}
+                          </p>
+                        </div>
+                        <button className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-red-900/50 transition-all">
+                          Ver más
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Efecto de brillo en hover */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-red-600/10 via-transparent to-transparent" />
                     </div>
                   </div>
-                  <div className="p-4 space-y-2">
-                    <h3 className="text-lg font-bold text-white">{vehicle.title}</h3>
-                    <p className="text-sm text-slate-300">
-                      {vehicle.brand} {vehicle.model} • {vehicle.year}
-                    </p>
-                    <p className="text-sm text-slate-400">
-                      {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km • ` : ''}{vehicle.transmission}
-                    </p>
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-2xl font-extrabold text-red-500">
-                        ${vehicle.price.toLocaleString()}
-                      </span>
-                      <button className="text-sm font-semibold text-white bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg">
-                        Me interesa
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -303,16 +373,16 @@ export default function Home({ onNavigate }: HomeProps) {
         </div>
       </section>
 
-      {/* CÓMO FUNCIONA */}
+      {/* COMO FUNCIONA */}
       <section className="bg-slate-100 py-14 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,0,0.08),transparent_30%)]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 mb-10">¿Cómo funciona?</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 mb-10">¿Como funciona?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { step: '1', title: 'Envíanos los datos', desc: 'Comparte la info de tu auto en segundos.' },
+              { step: '1', title: 'Envianos los datos', desc: 'Comparte la info de tu auto en segundos.' },
               { step: '2', title: 'Evaluamos gratis', desc: 'Tasamos tu auto y certificamos su estado.' },
-              { step: '3', title: 'Recibe una oferta justa', desc: 'Pago inmediato sin trámites complicados.' },
+              { step: '3', title: 'Recibe una oferta justa', desc: 'Pago inmediato sin tramites complicados.' },
             ].map((item) => (
               <div
                 key={item.step}
@@ -341,10 +411,7 @@ export default function Home({ onNavigate }: HomeProps) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((testimonial) => (
-                <div
-                  key={testimonial.id}
-                  className="bg-white border border-slate-100 rounded-xl p-6 shadow-md"
-                >
+                <div key={testimonial.id} className="bg-white border border-slate-100 rounded-xl p-6 shadow-md">
                   <div className="flex items-center mb-3">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -368,7 +435,7 @@ export default function Home({ onNavigate }: HomeProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h3 className="text-3xl font-extrabold text-white drop-shadow">Cotiza tu auto hoy</h3>
-            <p className="text-slate-200 mt-2 drop-shadow">Obtén la mejor oferta con atención inmediata.</p>
+            <p className="text-slate-200 mt-2 drop-shadow">Obten la mejor oferta con atencion inmediata.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <button
@@ -383,11 +450,11 @@ export default function Home({ onNavigate }: HomeProps) {
 
       {/* WhatsApp flotante */}
       <a
-        href="https://wa.me/541112345678?text=Hola%20quiero%20cotizar%20mi%20auto"
+        href="https://wa.me/573245799091?text=Hola%20quiero%20cotizar%20mi%20auto"
         target="_blank"
-        rel="noreferrer"
+        rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.55)] flex items-center justify-center bg-transparent"
-        aria-label="Escríbenos por WhatsApp"
+        aria-label="Escribenos por WhatsApp"
       >
         <img src="/whatsapp.png" alt="WhatsApp" className="h-14 w-14 object-contain" />
       </a>
@@ -396,3 +463,6 @@ export default function Home({ onNavigate }: HomeProps) {
     </div>
   );
 }
+
+
+

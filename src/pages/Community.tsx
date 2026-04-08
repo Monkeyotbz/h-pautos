@@ -40,13 +40,7 @@ export default function Community({ onNavigate }: CommunityProps) {
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
       {/* Hero */}
       <section
-        className="relative overflow-hidden"
-        style={{
-          backgroundImage:
-            "linear-gradient(120deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.65) 40%, rgba(0,0,0,0.45) 100%), url('https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1600&q=80')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        className="relative overflow-hidden community-hero-bg"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-14 md:py-20 relative z-10">
           <div className="max-w-3xl space-y-4">
@@ -65,9 +59,9 @@ export default function Community({ onNavigate }: CommunityProps) {
                 Vender mi Auto
               </button>
             <a
-              href="https://wa.me/541112345678?text=Hola%20quiero%20dejar%20mi%20opinión"
+              href="https://wa.me/573245799091?text=Hola%20quiero%20dejar%20mi%20opinión"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-[0_10px_30px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2"
             >
               <MessageCircle className="h-5 w-5" />
@@ -167,7 +161,7 @@ export default function Community({ onNavigate }: CommunityProps) {
           </button>
           <div className="mt-6 flex items-center justify-center gap-2 text-slate-300">
             <PhoneCall className="h-4 w-4 text-red-500" />
-            <span>+54 11 1234 5678</span>
+            <span>324 579 9091</span>
           </div>
         </div>
       </section>
