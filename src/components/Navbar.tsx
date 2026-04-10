@@ -15,10 +15,20 @@ export default function Navbar({ onNavigate, current }: NavbarProps) {
 
   return (
     <nav className="bg-black shadow relative">
-      <div className="max-w-10xl mx-auto px-6 sm:px-8 lg:px-10">
+      <div className="max-w-10xl mx-auto px-6 sm:px-8 lg:px-10 relative">
         <div className="flex items-center justify-between h-16">
-          {/* Left spacer to balance layout */}
-          <div className="w-24" />
+          {/* Logo centrado en móvil */}
+          <div className="flex-1 flex justify-center md:hidden">
+            <button
+              onClick={() => { setMobileOpen(false); onNavigate('home'); }}
+              aria-label="P & H AUTOS"
+            >
+              <img src="/hp-autos-logo.png" alt="P & H AUTOS" className="h-12 w-auto object-contain drop-shadow-lg" />
+            </button>
+          </div>
+
+          {/* Left spacer to balance layout (desktop) */}
+          <div className="hidden md:block w-24" />
 
           {/* Center: nav links (desktop) */}
           <div className="hidden md:flex flex-1 justify-center">
@@ -47,7 +57,7 @@ export default function Navbar({ onNavigate, current }: NavbarProps) {
           </div>
 
           {/* Right: mobile menu button */}
-          <div className="flex items-center md:hidden">
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center md:hidden">
             <button
               onClick={() => setMobileOpen((s) => !s)}
               aria-expanded={mobileOpen}
