@@ -476,17 +476,6 @@ export default function Home({ onNavigate }: HomeProps) {
         </div>
       </section>
 
-      {/* WhatsApp flotante */}
-      <a
-        href="https://wa.me/573245799091?text=Hola%20quiero%20cotizar%20mi%20auto"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.55)] flex items-center justify-center bg-transparent"
-        aria-label="Escribenos por WhatsApp"
-      >
-        <img src="/whatsapp.png" alt="Escribenos por WhatsApp" loading="lazy" decoding="async" className="h-14 w-14 object-contain" />
-      </a>
-
       <Footer />
       </main>
     </div>

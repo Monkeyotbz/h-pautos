@@ -75,6 +75,17 @@ function InnerApp() {
         <Route path="/community" element={<Community onNavigate={handleNavigate} />} />
         <Route path="/panel-admin" element={<Admin />} />
       </Routes>
+      {!isAdminRoute && (
+        <a
+          href="https://wa.me/573245799091?text=Hola%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-50 w-16 h-16 flex items-center justify-center drop-shadow-2xl hover:scale-110 transition-transform duration-200"
+          aria-label="Escribenos por WhatsApp"
+        >
+          <img src="/botonwhatsapp.png" alt="WhatsApp" className="w-16 h-16 object-contain" />
+        </a>
+      )}
     </>
   );
 }
