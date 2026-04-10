@@ -290,13 +290,21 @@ export default function VehicleForm({ vehicle, onClose }: VehicleFormProps) {
               type="text"
               required
               value={formData.model}
-              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+              onChange={(e) => {
+                const model = e.target.value;
+                const yearMatch = model.match(/\b(19|20)\d{2}\b/);
+                setFormData({
+                  ...formData,
+                  model,
+                  ...(yearMatch ? { year: Number(yearMatch[0]) } : {}),
+                });
+              }}
               className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-2">Ano *</label>
+            <label className="block text-sm font-semibold text-slate-200 mb-2">Año * <span className="font-normal text-slate-400">(llenar con el mismo año del modelo)</span></label>
             <input
               type="number"
               required
