@@ -77,7 +77,7 @@ function InnerApp() {
       </Routes>
       {!isAdminRoute && (
         <a
-          href="https://wa.me/573245799091?text=Hola%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+          href="https://wa.me/573245799091?text=Hola%20P%26H%20Autos!%20Los%20vi%20en%20su%20web%20y%20me%20interesa%20recibir%20informaci%C3%B3n%20%F0%9F%91%8B"
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-6 right-6 z-50 w-16 h-16 flex items-center justify-center drop-shadow-2xl hover:scale-110 transition-transform duration-200"
