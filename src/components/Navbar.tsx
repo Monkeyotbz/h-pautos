@@ -33,9 +33,9 @@ export default function Navbar({ onNavigate, current }: NavbarProps) {
               <button
                 onClick={() => { setMobileOpen(false); onNavigate('home'); }}
                 className="px-3 py-2 rounded-md hover:bg-white/10 transition"
-                aria-label="H & P AUTOS"
+                aria-label="P & H AUTOS"
               >
-                <img src="/hp-autos-logo.png" alt="H & P AUTOS" className="h-16 w-auto object-contain drop-shadow-lg" />
+                <img src="/hp-autos-logo.png" alt="P & H AUTOS" className="h-16 w-auto object-contain drop-shadow-lg" />
               </button>
               <button className={linkClass('community')} onClick={() => onNavigate('community')}>
                 Comunidad
@@ -51,7 +51,8 @@ export default function Navbar({ onNavigate, current }: NavbarProps) {
             <button
               onClick={() => setMobileOpen((s) => !s)}
               aria-expanded={mobileOpen}
-              aria-label="Abrir menú"
+              aria-controls="mobile-menu"
+              aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
               className="inline-flex items-center justify-center p-2 rounded-md text-slate-200 hover:text-white hover:bg-red-600 focus:outline-none"
             >
               {mobileOpen ? (
@@ -73,7 +74,7 @@ export default function Navbar({ onNavigate, current }: NavbarProps) {
 
       {/* Mobile menu: lista vertical */}
       {mobileOpen && (
-        <div className="md:hidden bg-black border-t border-gray-800">
+        <div id="mobile-menu" className="md:hidden bg-black border-t border-gray-800">
           <div className="max-w-10xl mx-auto px-6 sm:px-8 lg:px-10">
             <ul className="flex flex-col py-2">
               <li>

@@ -47,7 +47,7 @@ export default function Admin() {
         <div className="relative w-full max-w-md bg-black/60 border border-white/10 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-white/10 flex items-center justify-center">
-              <img src="/hp-autos-logo.png" alt="H & P AUTOS" className="h-16 w-auto object-contain" />
+              <img src="/hp-autos-logo.png" alt="P & H AUTOS" className="h-16 w-auto object-contain" />
             </div>
             <h1 className="text-3xl font-extrabold text-white mb-2">Panel de Administracion</h1>
             <p className="text-slate-300">Inicia sesion para continuar</p>
@@ -108,7 +108,7 @@ export default function Admin() {
       <header className="bg-black/70 border-b border-white/10 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src="/hp-autos-logo.png" alt="H & P AUTOS" className="h-12 w-auto object-contain" />
+            <img src="/hp-autos-logo.png" alt="P & H AUTOS" className="h-12 w-auto object-contain" />
             <div>
               <h1 className="text-2xl font-extrabold text-white">Panel de Administracion</h1>
               <p className="text-slate-300 text-sm flex items-center gap-2">

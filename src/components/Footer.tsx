@@ -16,7 +16,7 @@ export default function Footer() {
               {/* logo más pequeño en móvil, más grande en desktop */}
               <img
                 src="/hp-autos-logo.png"
-                alt="H & P AUTOS"
+                alt="P & H AUTOS"
                 className="h-40 md:h-50 w-auto object-contain"
               />
             </button>
@@ -100,7 +100,7 @@ export default function Footer() {
 
         {/* copyright - centrado en móvil */}
         <div className="border-t border-slate-800 mt-8 pt-6 text-sm text-center">
-          <p className="text-black">&copy; {new Date().getFullYear()} H &amp; P AUTOS. Todos los derechos reservados.</p>
+          <p className="text-black">&copy; {new Date().getFullYear()} P &amp; H AUTOS. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

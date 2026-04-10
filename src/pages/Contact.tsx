@@ -1,5 +1,6 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -17,6 +18,10 @@ export default function Contact({ onNavigate }: ContactProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    document.title = 'Contacto | P & H Autos';
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -53,13 +58,21 @@ export default function Contact({ onNavigate }: ContactProps) {
 
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
+      <Helmet>
+        <title>Contacto | P &amp; H Autos - Antioquia</title>
+        <meta name="description" content="Contáctanos para comprar o vender tu vehículo. Estamos en el Área Metropolitana de Antioquia. Teléfono: 324 579 9091." />
+        <meta property="og:title" content="Contacto | P &amp; H Autos" />
+        <meta property="og:description" content="Ponte en contacto con P &amp; H Autos para comprar o vender tu vehículo en Antioquia." />
+        <meta property="og:url" content="https://h-pautos.vercel.app/contact" />
+      </Helmet>
+      <main>
       {/* Hero */}
       <section className="relative overflow-hidden contact-hero-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12 md:py-16 relative z-10">
           <div className="max-w-3xl space-y-4">
             <p className="text-sm uppercase tracking-[0.3em] text-red-400">Contacto</p>
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
-              H &amp; P Autos
+              P &amp; H Autos
             </h1>
             <p className="text-lg text-slate-200/80">
               Estamos listos para ayudarte.
@@ -245,11 +258,12 @@ export default function Contact({ onNavigate }: ContactProps) {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Mapa H & P AUTOS"
+              title="Mapa P & H AUTOS"
             ></iframe>
           </div>
         </div>
       </div>
+      </main>
     </div>
   );
 }

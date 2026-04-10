@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { Star, MessageCircle, PhoneCall } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import { Star, MessageCircle, PhoneCall, X } from 'lucide-react';
 import { supabase, Testimonial } from '../lib/supabase';
 
 type CommunityProps = {
@@ -10,8 +11,18 @@ export default function Community({ onNavigate }: CommunityProps) {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Modal de opinión
+  const [modalOpen, setModalOpen] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formRating, setFormRating] = useState(5);
+  const [formComment, setFormComment] = useState('');
+  const [formHoverRating, setFormHoverRating] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
   useEffect(() => {
     loadData();
+    document.title = 'Opiniones de clientes | P & H Autos';
   }, []);
 
   const loadData = async () => {
@@ -36,8 +47,45 @@ export default function Community({ onNavigate }: CommunityProps) {
     return Math.round((total / testimonials.length) * 10) / 10;
   }, [testimonials]);
 
+  const openModal = () => {
+    setFormName('');
+    setFormRating(5);
+    setFormComment('');
+    setFormHoverRating(0);
+    setSubmitStatus('idle');
+    setModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim() || !formComment.trim()) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from('testimonials').insert({
+        customer_name: formName.trim(),
+        rating: formRating,
+        comment: formComment.trim(),
+        approved: false,
+      });
+      if (error) throw error;
+      setSubmitStatus('success');
+    } catch {
+      setSubmitStatus('error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
+      <Helmet>
+        <title>Opiniones de clientes | P &amp; H Autos</title>
+        <meta name="description" content="Lee las opiniones reales de nuestros clientes sobre P &amp; H Autos. Comparte tu experiencia con nuestra comunidad de Antioquia." />
+        <meta property="og:title" content="Comunidad P &amp; H Autos | Opiniones de clientes" />
+        <meta property="og:description" content="Opiniones reales de clientes que confiaron en P &amp; H Autos para comprar o vender su vehículo." />
+        <meta property="og:url" content="https://h-pautos.vercel.app/community" />
+      </Helmet>
+      <main>
       {/* Hero */}
       <section
         className="relative overflow-hidden community-hero-bg"
@@ -46,7 +94,7 @@ export default function Community({ onNavigate }: CommunityProps) {
           <div className="max-w-3xl space-y-4">
             <p className="text-sm uppercase tracking-[0.3em] text-red-400">Comunidad</p>
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
-              Comunidad de H &amp; P Autos
+              Comunidad de P &amp; H Autos
             </h1>
             <p className="text-lg text-slate-200/80">
               Lo que dicen nuestros clientes sobre nosotros. Opiniones reales que respaldan nuestro servicio.
@@ -85,7 +133,7 @@ export default function Community({ onNavigate }: CommunityProps) {
             {ratingAvg} / 5 Opiniones
           </div>
           <p className="text-sm text-slate-300 text-center md:text-left max-w-2xl">
-            Nuestros clientes confían en H &amp; P Autos. Lee sus opiniones y descubre por qué somos la mejor opción en compra y venta de vehículos usados.
+            Nuestros clientes confían en P &amp; H Autos. Lee sus opiniones y descubre por qué somos la mejor opción en compra y venta de vehículos usados.
           </p>
         </div>
       </section>
@@ -151,10 +199,10 @@ export default function Community({ onNavigate }: CommunityProps) {
             ¿Ya eres parte de nuestra comunidad?
           </h2>
           <p className="text-slate-300 mb-6">
-            Compártenos tu experiencia con H &amp; P Autos y ayuda a más personas a confiar en nosotros.
+            Compártenos tu experiencia con P &amp; H Autos y ayuda a más personas a confiar en nosotros.
           </p>
           <button
-            onClick={() => onNavigate?.('contact')}
+            onClick={openModal}
             className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-[0_10px_30px_rgba(239,68,68,0.35)]"
           >
             Dejar Opinión
@@ -165,6 +213,114 @@ export default function Community({ onNavigate }: CommunityProps) {
           </div>
         </div>
       </section>
+      </main>
+
+      {/* Modal Dejar Opinión */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-[#151518] border border-white/10 rounded-2xl shadow-2xl p-6">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {submitStatus === 'success' ? (
+              <div className="text-center py-6">
+                <div className="flex items-center justify-center mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">¡Gracias por tu opinión!</h3>
+                <p className="text-slate-300 text-sm mb-6">
+                  Tu comentario fue enviado y estará visible una vez que sea revisado por nuestro equipo.
+                </p>
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold text-white mb-1">Dejar una opinión</h2>
+                <p className="text-slate-400 text-sm mb-5">
+                  Tu opinión será publicada tras ser aprobada por el equipo.
+                </p>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Nombre *</label>
+                    <input
+                      type="text"
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      required
+                      maxLength={80}
+                      placeholder="Tu nombre"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Calificación *</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          aria-label={`${star} estrellas`}
+                          onClick={() => setFormRating(star)}
+                          onMouseEnter={() => setFormHoverRating(star)}
+                          onMouseLeave={() => setFormHoverRating(0)}
+                          className="focus:outline-none"
+                        >
+                          <Star
+                            className={`h-7 w-7 transition-colors ${
+                              star <= (formHoverRating || formRating)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'fill-slate-700 text-slate-700'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Comentario *</label>
+                    <textarea
+                      value={formComment}
+                      onChange={(e) => setFormComment(e.target.value)}
+                      required
+                      maxLength={500}
+                      rows={4}
+                      placeholder="Cuéntanos tu experiencia con P &amp; H Autos..."
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors resize-none"
+                    />
+                    <p className="text-xs text-slate-500 text-right mt-1">{formComment.length}/500</p>
+                  </div>
+
+                  {submitStatus === 'error' && (
+                    <p className="text-red-400 text-sm">Ocurrió un error. Intenta de nuevo.</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submitting || !formName.trim() || !formComment.trim()}
+                    className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
+                  >
+                    {submitting ? 'Enviando...' : 'Enviar opinión'}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

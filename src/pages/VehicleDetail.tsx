@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Car,
   Calendar,
@@ -49,6 +50,15 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
     loadVehicle();
   }, [loadVehicle]);
 
+  useEffect(() => {
+    if (vehicle) {
+      document.title = `${vehicle.title} - ${vehicle.brand} ${vehicle.model} ${vehicle.year} | P & H Autos`;
+    }
+    return () => {
+      document.title = 'P & H Autos | Compra y venta de vehículos usados en Antioquia';
+    };
+  }, [vehicle]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0b0b0f] flex items-center justify-center">
@@ -94,34 +104,17 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
   };
 
   // Calcular estrellas de reconocimiento
-  const calculateStars = () => {
-    let stars = 0;
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - vehicle.year;
-    
-    if (vehicle.condition === 'nuevo') return 5;
-    
-    if (age <= 1) stars += 2.5;
-    else if (age <= 3) stars += 2;
-    else if (age <= 5) stars += 1.5;
-    else if (age <= 8) stars += 1;
-    else stars += 0.5;
-    
-    if (vehicle.km < 20000) stars += 2.5;
-    else if (vehicle.km < 50000) stars += 2;
-    else if (vehicle.km < 100000) stars += 1.5;
-    else if (vehicle.km < 150000) stars += 1;
-    else stars += 0.5;
-    
-    return Math.min(5, Math.round(stars * 2) / 2);
-  };
-
-  const stars = calculateStars();
-  const fullStars = Math.floor(stars);
-  const hasHalfStar = stars % 1 !== 0;
 
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
+      <Helmet>
+        <title>{`${vehicle.title} - ${vehicle.brand} ${vehicle.model} ${vehicle.year} | P & H Autos`}</title>
+        <meta name="description" content={`${vehicle.condition === 'nuevo' ? 'Nuevo' : 'Usado'} ${vehicle.brand} ${vehicle.model} ${vehicle.year} - ${vehicle.km.toLocaleString()} km - $${Number(vehicle.price).toLocaleString()} COP. P & H Autos, Antioquia.`} />
+        <meta property="og:title" content={`${vehicle.title} | P & H Autos`} />
+        <meta property="og:description" content={`${vehicle.brand} ${vehicle.model} ${vehicle.year} - ${vehicle.km.toLocaleString()} km - $${Number(vehicle.price).toLocaleString()}`} />
+        <meta property="og:url" content={`https://h-pautos.vercel.app/vehicle/${vehicle.id}`} />
+      </Helmet>
+      <main>
       {/* Header con botón de volver */}
       <div className="bg-gradient-to-b from-black/60 to-transparent border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -144,8 +137,10 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
                 <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl">
                   <img
                     src={images[currentImageIndex]}
-                    alt={vehicle.title}
-                    className="w-full h-[500px] object-cover"
+                    alt={`${vehicle.brand} ${vehicle.model} ${vehicle.year} - ${vehicle.title} - imagen ${currentImageIndex + 1}`}
+                    fetchpriority="high"
+                    decoding="async"
+                    className="w-full h-[260px] sm:h-[500px] object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                   
@@ -190,7 +185,9 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
                       >
                         <img
                           src={img}
-                          alt={`${vehicle.title} ${index + 1}`}
+                          alt={`${vehicle.brand} ${vehicle.model} ${vehicle.year} - imagen ${index + 1}`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-20 object-cover"
                         />
                       </button>
@@ -208,9 +205,9 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
           {/* Información del vehículo */}
           <div className="space-y-6">
             {/* Tarjeta principal */}
-            <div className="bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 rounded-2xl shadow-2xl p-8">
-              {/* Badge y Estrellas */}
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 rounded-2xl shadow-2xl p-4 sm:p-8">
+              {/* Badge */}
+              <div className="flex items-center mb-4">
                 <span
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
                     vehicle.condition === 'nuevo'
@@ -220,26 +217,10 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
                 >
                   {vehicle.condition === 'nuevo' ? '✨ NUEVO' : '🚗 USADO'}
                 </span>
-                
-                {/* Estrellas */}
-                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-full">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < fullStars
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : i === fullStars && hasHalfStar
-                          ? 'fill-yellow-400 text-yellow-400 opacity-50'
-                          : 'fill-slate-600 text-slate-600'
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
 
               {/* Título */}
-              <h1 className="text-4xl font-extrabold text-white mb-2 leading-tight">
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-white mb-2 leading-tight">
                 {vehicle.title}
               </h1>
               <p className="text-xl text-slate-300 font-medium mb-6">
@@ -247,61 +228,61 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
               </p>
 
               {/* Precio */}
-              <div className="bg-gradient-to-r from-red-900/30 to-red-800/20 border border-red-700/30 rounded-xl p-6 mb-6">
+              <div className="bg-gradient-to-r from-red-900/30 to-red-800/20 border border-red-700/30 rounded-xl p-4 sm:p-6 mb-6">
                 <p className="text-sm text-slate-400 font-medium mb-1">Precio</p>
-                <p className="text-5xl font-black bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                <p className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
                   ${Number(vehicle.price).toLocaleString()}
                 </p>
               </div>
 
               {/* Especificaciones */}
               <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-600/20 p-2.5 rounded-lg">
-                      <Calendar className="h-5 w-5 text-red-400" />
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-red-600/20 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-400 font-medium">Año</p>
-                      <p className="text-lg font-bold text-white">{vehicle.year}</p>
+                      <p className="text-sm sm:text-lg font-bold text-white">{vehicle.year}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-600/20 p-2.5 rounded-lg">
-                      <Gauge className="h-5 w-5 text-red-400" />
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-red-600/20 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+                      <Gauge className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-400 font-medium">Kilometraje</p>
-                      <p className="text-lg font-bold text-white">
+                      <p className="text-sm sm:text-lg font-bold text-white truncate">
                         {vehicle.km.toLocaleString()} km
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-600/20 p-2.5 rounded-lg">
-                      <Fuel className="h-5 w-5 text-red-400" />
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-red-600/20 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+                      <Fuel className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-400 font-medium">Combustible</p>
-                      <p className="text-lg font-bold text-white">{vehicle.fuel}</p>
+                      <p className="text-sm sm:text-lg font-bold text-white">{vehicle.fuel}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-red-600/20 p-2.5 rounded-lg">
-                      <Settings className="h-5 w-5 text-red-400" />
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4 hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-red-600/20 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+                      <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-red-400" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-400 font-medium">Transmisión</p>
-                      <p className="text-lg font-bold text-white capitalize">{vehicle.transmission}</p>
+                      <p className="text-sm sm:text-lg font-bold text-white capitalize truncate">{vehicle.transmission}</p>
                     </div>
                   </div>
                 </div>
@@ -344,8 +325,8 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
 
         {/* Descripción y Características Detalladas */}
         <div className="mt-8 bg-gradient-to-br from-slate-900/90 via-slate-800/80 to-slate-900/90 border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="p-8">
-            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+          <div className="p-4 sm:p-8">
+            <h2 className="text-xl sm:text-3xl font-bold text-white mb-6 flex items-center gap-3">
               <div className="h-1 w-12 bg-gradient-to-r from-red-600 to-red-400 rounded-full"></div>
               Información Detallada
             </h2>
@@ -407,10 +388,6 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
                     <span className="text-slate-400">Modelo</span>
                     <span className="font-semibold text-white">{vehicle.model}</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-slate-700/30">
-                    <span className="text-slate-400">Año</span>
-                    <span className="font-semibold text-white">{vehicle.year}</span>
-                  </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-slate-400">Kilometraje</span>
                     <span className="font-semibold text-white">{vehicle.km.toLocaleString()} km</span>
@@ -439,23 +416,6 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
                       <span className="font-semibold text-white">{vehicle.location}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center py-2 border-b border-slate-700/30">
-                    <span className="text-slate-400">Estado del Vehículo</span>
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-3.5 w-3.5 ${
-                            i < fullStars
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : i === fullStars && hasHalfStar
-                              ? 'fill-yellow-400 text-yellow-400 opacity-50'
-                              : 'fill-slate-600 text-slate-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
                   <div className="flex justify-between items-center py-2">
                     <span className="text-slate-400">Precio</span>
                     <span className="text-2xl font-black bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
@@ -469,13 +429,13 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
         </div>
 
         {/* CTA Final */}
-        <div className="mt-8 bg-gradient-to-r from-red-600 via-red-700 to-red-800 rounded-2xl p-10 text-center shadow-2xl relative overflow-hidden">
+        <div className="mt-8 bg-gradient-to-r from-red-600 via-red-700 to-red-800 rounded-2xl p-6 sm:p-10 text-center shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
           <div className="relative z-10">
-            <h2 className="text-4xl font-black text-white mb-3">
+            <h2 className="text-2xl sm:text-4xl font-black text-white mb-3">
               ¿Interesado en este vehículo?
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl text-white/90 mb-5 sm:mb-8 max-w-2xl mx-auto">
               Contáctanos para más información o para agendar una prueba de manejo
             </p>
             <button
@@ -487,6 +447,7 @@ export default function VehicleDetail({ vehicleId, onNavigate }: VehicleDetailPr
           </div>
         </div>
       </div>
+      </main>
     </div>
   );
 }

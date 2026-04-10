@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Car,
   ShieldCheck,
@@ -38,6 +39,23 @@ export default function Home({ onNavigate }: HomeProps) {
 
   useEffect(() => {
     loadData();
+    document.title = 'P & H Autos | Compra y venta de vehículos usados en Antioquia';
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.reveal').forEach((el) => el.classList.add('visible'));
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.reveal-section').forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
   }, []);
 
   const loadData = async () => {
@@ -45,7 +63,7 @@ export default function Home({ onNavigate }: HomeProps) {
       const [vehiclesResponse, testimonialsResponse] = await Promise.all([
         supabase
           .from('vehicles')
-          .select('id, title, brand, model, year, price, km, condition, transmission, fuel, location, description, status, created_at, rating, vehicle_images (url, sort_order)')
+          .select('id, title, brand, model, year, price, km, condition, transmission, fuel, location, description, status, created_at, vehicle_images (url, sort_order)')
           .eq('status', 'activo')
           .order('created_at', { ascending: false })
           .limit(8),
@@ -98,13 +116,21 @@ export default function Home({ onNavigate }: HomeProps) {
 
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
+      <Helmet>
+        <title>P &amp; H Autos | Compra y venta de vehículos usados en Antioquia</title>
+        <meta name="description" content="P &amp; H Autos: compra y venta de vehículos usados verificados en el Área Metropolitana de Antioquia. Evaluación gratuita, pago inmediato y trámites sencillos." />
+        <meta property="og:title" content="P &amp; H Autos | Compra y venta de vehículos usados en Antioquia" />
+        <meta property="og:description" content="Compra y venta de vehículos usados verificados en Antioquia. Evaluación gratuita y pago inmediato." />
+        <meta property="og:url" content="https://h-pautos.vercel.app/" />
+      </Helmet>
+      <main>
       {/* HERO */}
       <section
         className="relative overflow-hidden home-hero-bg"
       >
         <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_top_left,rgba(255,0,0,0.35),transparent_35%)]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-16 md:py-24 grid md:grid-cols-2 gap-12">
-          <div className="space-y-6">
+          <div className="space-y-6 animate-slide-left">
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
               Compra y vende tu auto usado
               <span className="text-red-500 block">Facil y Rapido</span>
@@ -141,7 +167,7 @@ export default function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/40">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/40 animate-slide-right">
             <div className="mb-4">
               <h3 className="text-2xl font-bold text-white">¿Quieres vender o comprar un auto?</h3>
               <p className="text-sm text-slate-300">Dejanos tus datos y te contactamos de inmediato.</p>
@@ -206,10 +232,10 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
       {/* POR QUE ELEGIRNOS */}
-      <section className="bg-white py-14">
+      <section className="bg-white py-14 reveal-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 mb-10">
-            ¿Por que elegir H & P Autos?
+            ¿Por que elegir P & H Autos?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
@@ -217,10 +243,10 @@ export default function Home({ onNavigate }: HomeProps) {
               { icon: ShieldCheck, title: 'Transaccion Segura', desc: 'Nos encargamos de todo el papeleo.' },
               { icon: BadgeCheck, title: 'Autos Revisados', desc: 'Vehiculos verificados y certificados.' },
               { icon: Headset, title: 'Atencion Personalizada', desc: 'Asesoramiento experto en todo momento.' },
-            ].map((item) => (
+            ].map((item, i) => (
               <div
                 key={item.title}
-                className="bg-gradient-to-b from-slate-50 to-white border border-slate-100 rounded-xl p-6 text-center shadow-sm"
+                className={`bg-gradient-to-b from-slate-50 to-white border border-slate-100 rounded-xl p-6 text-center shadow-sm reveal reveal-delay-${i + 1}`}
               >
                 <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-red-50 flex items-center justify-center text-red-600">
                   <item.icon className="h-7 w-7" />
@@ -276,7 +302,9 @@ export default function Home({ onNavigate }: HomeProps) {
                       {imageUrl ? (
                         <img 
                           src={imageUrl} 
-                          alt={vehicle.title} 
+                          alt={`${vehicle.brand} ${vehicle.model} ${vehicle.year} ${vehicle.condition === 'nuevo' ? 'nuevo' : 'usado'} - ${vehicle.title}`} 
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                       ) : (
@@ -374,7 +402,7 @@ export default function Home({ onNavigate }: HomeProps) {
       </section>
 
       {/* COMO FUNCIONA */}
-      <section className="bg-slate-100 py-14 relative overflow-hidden">
+      <section className="bg-slate-100 py-14 relative overflow-hidden reveal-section">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,0,0.08),transparent_30%)]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
           <h2 className="text-3xl md:text-4xl font-extrabold text-center text-slate-900 mb-10">¿Como funciona?</h2>
@@ -383,10 +411,10 @@ export default function Home({ onNavigate }: HomeProps) {
               { step: '1', title: 'Envianos los datos', desc: 'Comparte la info de tu auto en segundos.' },
               { step: '2', title: 'Evaluamos gratis', desc: 'Tasamos tu auto y certificamos su estado.' },
               { step: '3', title: 'Recibe una oferta justa', desc: 'Pago inmediato sin tramites complicados.' },
-            ].map((item) => (
+            ].map((item, i) => (
               <div
                 key={item.step}
-                className="bg-white rounded-xl p-6 shadow-md border border-slate-100 flex items-start space-x-4"
+                className={`bg-white rounded-xl p-6 shadow-md border border-slate-100 flex items-start space-x-4 reveal reveal-delay-${i + 1}`}
               >
                 <div className="h-10 w-10 rounded-full bg-red-600 text-white flex items-center justify-center font-bold">
                   {item.step}
@@ -456,10 +484,11 @@ export default function Home({ onNavigate }: HomeProps) {
         className="fixed bottom-6 right-6 z-50 rounded-full w-14 h-14 shadow-[0_12px_28px_-10px_rgba(0,0,0,0.55)] flex items-center justify-center bg-transparent"
         aria-label="Escribenos por WhatsApp"
       >
-        <img src="/whatsapp.png" alt="WhatsApp" className="h-14 w-14 object-contain" />
+        <img src="/whatsapp.png" alt="Escribenos por WhatsApp" loading="lazy" decoding="async" className="h-14 w-14 object-contain" />
       </a>
 
       <Footer />
+      </main>
     </div>
   );
 }

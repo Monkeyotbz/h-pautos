@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Car, Search, Filter, ChevronRight, ChevronLeft, MessageCircle, Star, Calendar, Gauge, Settings, Fuel } from 'lucide-react';
 import { supabase, Vehicle, VehicleImage, normalizeStorageUrl } from '../lib/supabase';
 
@@ -33,7 +34,7 @@ export default function Catalog({ onNavigate }: CatalogProps) {
     try {
       const { data, error } = await supabase
         .from('vehicles')
-        .select('id, title, brand, model, year, price, km, condition, transmission, fuel, location, description, status, created_at, rating, vehicle_images (url, sort_order)')
+        .select('id, title, brand, model, year, price, km, condition, transmission, fuel, location, description, status, created_at, vehicle_images (url, sort_order)')
         .eq('status', 'activo')
         .order('created_at', { ascending: false });
 
@@ -72,6 +73,7 @@ export default function Catalog({ onNavigate }: CatalogProps) {
 
   useEffect(() => {
     loadVehicles();
+    document.title = 'Catálogo de vehículos usados | P & H Autos';
   }, [loadVehicles]);
 
   useEffect(() => {
@@ -109,6 +111,14 @@ export default function Catalog({ onNavigate }: CatalogProps) {
 
   return (
     <div className="min-h-screen bg-[#0b0b0f] text-slate-100">
+      <Helmet>
+        <title>Catálogo de vehículos usados | P &amp; H Autos</title>
+        <meta name="description" content="Explora nuestro catálogo de vehículos usados verificados en Antioquia. Filtra por marca, precio, año y mucho más." />
+        <meta property="og:title" content="Catálogo de vehículos | P &amp; H Autos" />
+        <meta property="og:description" content="Vehículos usados verificados en el Área Metropolitana de Antioquia. Encuentra tu próximo auto." />
+        <meta property="og:url" content="https://h-pautos.vercel.app/catalog" />
+      </Helmet>
+      <main>
       {/* Hero */}
       <section
         className="relative overflow-hidden catalog-hero-bg"
@@ -285,7 +295,9 @@ export default function Catalog({ onNavigate }: CatalogProps) {
                       {imageUrl ? (
                         <img 
                           src={imageUrl} 
-                          alt={vehicle.title} 
+                          alt={`${vehicle.brand} ${vehicle.model} ${vehicle.year} ${vehicle.condition === 'nuevo' ? 'nuevo' : 'usado'} - ${vehicle.title}`} 
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                       ) : (
@@ -418,6 +430,7 @@ export default function Catalog({ onNavigate }: CatalogProps) {
           </>
         )}
       </div>
+      </main>
     </div>
   );
 }

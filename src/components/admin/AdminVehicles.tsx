@@ -148,10 +148,10 @@ export default function AdminVehicles() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onClick={() => handleEdit(vehicle)} className="text-blue-300 hover:text-blue-100 mr-4">
+                        <button onClick={() => handleEdit(vehicle)} aria-label={`Editar ${vehicle.title}`} className="text-blue-300 hover:text-blue-100 mr-4">
                           <Edit2 className="h-5 w-5" />
                         </button>
-                        <button onClick={() => handleDelete(vehicle.id)} className="text-red-300 hover:text-red-100">
+                        <button onClick={() => handleDelete(vehicle.id)} aria-label={`Eliminar ${vehicle.title}`} className="text-red-300 hover:text-red-100">
                           <Trash2 className="h-5 w-5" />
                         </button>
                       </td>

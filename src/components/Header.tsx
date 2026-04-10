@@ -31,7 +31,7 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <Car className="h-8 w-8 text-orange-500" />
-            <span className="text-xl font-bold">H &amp; P AUTOS</span>
+            <span className="text-xl font-bold">P &amp; H AUTOS</span>
           </button>
 
           <nav className="hidden md:flex items-center space-x-8">
